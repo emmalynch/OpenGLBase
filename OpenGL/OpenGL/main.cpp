@@ -28,30 +28,12 @@
 
 using namespace std;
 
-#define MIN_LINEAR 0
-#define MIN_NEAREST 1
-#define MAG_LINEAR 2
-#define MAG_NEAREST 3
-#define S_REPEAT 4
-#define S_CLAMP 5
-#define T_REPEAT 6
-#define T_CLAMP 7
-#define ENV_MODULATE 8
-#define ENV_REPLACE 9
-
-static int minFilter = GL_LINEAR;
-static int magFilter = GL_LINEAR;
-static int wrapS = GL_REPEAT;
-static int wrapT = GL_REPEAT;
-static int envMode = GL_MODULATE;
-
-void menuCallback(int);
 void setCamera(void);
 void drawScene(void);
 
 static int win = 0;
 static GLfloat whiteLight[3] = {1.0f, 1.0f, 1.0f};
-static GLfloat greenLight[3] = {0.0f, 1.0f, 0.0f};
+static GLfloat secondaryLight[3] = {0.0f, 1.0f, 0.0f};
 static GLfloat lightPosition[4] = {0.0f, 0.0f, 0.0f, 1.0f};
 static GLuint teaTex;
 
@@ -61,11 +43,6 @@ void loadTextures()
     
     glGenTextures(2, &teaTex);
     glBindTexture(GL_TEXTURE_2D, teaTex);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, envMode);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture_width, texture_height, 0, GL_RGB, GL_UNSIGNED_BYTE, texture_image);
 }
 
@@ -92,7 +69,7 @@ void drawScene()
 {
     // Draw Teapot
     glPushMatrix();
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, greenLight);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, secondaryLight);
     glMaterialfv(GL_FRONT, GL_SPECULAR, whiteLight);
     glMaterialf(GL_FRONT, GL_SHININESS, 25.0);
     glTranslatef(0.0f, 0.5f, 0.0f);
@@ -125,80 +102,6 @@ void setCamera()
     glRotatef(0.0f, 0.0f, 1.0f, 0.0f);
 }
 
-void makeMenu()
-{
-    int menu, min, mag, sDir, tDir, env;
-    
-    min = glutCreateMenu(menuCallback);
-    glutAddMenuEntry("linear", MIN_LINEAR);
-    glutAddMenuEntry("nearest", MIN_NEAREST);
-    
-    mag = glutCreateMenu(menuCallback);
-    glutAddMenuEntry("linear", MAG_LINEAR);
-    glutAddMenuEntry("nearest", MAG_NEAREST);
-    
-    sDir = glutCreateMenu(menuCallback);
-    glutAddMenuEntry("repeat", S_REPEAT);
-    glutAddMenuEntry("clamp", S_CLAMP);
-    
-    tDir = glutCreateMenu(menuCallback);
-    glutAddMenuEntry("repeat", T_REPEAT);
-    glutAddMenuEntry("clamp", T_CLAMP);
-    
-    env = glutCreateMenu(menuCallback);
-    glutAddMenuEntry("modulate", ENV_MODULATE);
-    glutAddMenuEntry("replace", ENV_REPLACE);
-    
-    menu = glutCreateMenu(menuCallback);
-    glutAddSubMenu("texture min filter", min);
-    glutAddSubMenu("texture mag filter", mag);
-    glutAddSubMenu("wrap s direction", sDir);
-    glutAddSubMenu("wrap t direction", tDir);
-    glutAddSubMenu("texture env mode", env);
-    glutAttachMenu(GLUT_RIGHT_BUTTON);
-}
-
-void menuCallback(int option)
-{
-    switch (option) {
-        case MIN_LINEAR:
-            minFilter = GL_LINEAR;
-            break;
-        case MIN_NEAREST:
-            minFilter = GL_NEAREST;
-            break;
-        case MAG_LINEAR:
-            magFilter = GL_LINEAR;
-            break;
-        case MAG_NEAREST:
-            magFilter = GL_NEAREST;
-            break;
-        case S_REPEAT:
-            wrapS = GL_REPEAT;
-            break;
-        case S_CLAMP:
-            wrapS = GL_CLAMP;
-            break;
-        case T_REPEAT:
-            wrapT = GL_REPEAT;
-            break;
-        case T_CLAMP:
-            wrapT = GL_CLAMP;
-            break;
-        case ENV_MODULATE:
-            envMode = GL_MODULATE;
-            break;
-        case ENV_REPLACE:
-            envMode = GL_REPLACE;
-            break;
-        default:
-            break;
-    }
-    
-    glDeleteTextures(1, &teaTex); // De-allocate current texture
-    loadTextures(); // Re-load texture
-    glutPostRedisplay();
-}
 
 void CreateGlutWindow()
 {
@@ -247,9 +150,7 @@ int main (int argc, char **argv)
     CreateGlutWindow();
     CreateGlutCallbacks();
     InitOpenGL();
-    
-    makeMenu();
-    
+        
     glutMainLoop();
     
     ExitGlut();
